@@ -4,6 +4,8 @@ from lxml import html
 import re
 import time
 
+
+
 def scrape_amazon_products(url):
     retries = 3  # Number of retries
     delay = 2  # Delay in seconds between retries
@@ -21,32 +23,50 @@ def scrape_amazon_products(url):
             tree = html.fromstring(response.content)
 
             # Extract product information using XPath
-            product_names = tree.xpath("//span[contains(@class, 'a-size-base-plus') and contains(@class, 'a-color-base') and contains(@class, 'a-text-normal')]/text()")
-            prices_with_dollar = tree.xpath("//span[@class='a-offscreen']/text()")
-            prices = [price.strip('$') for price in prices_with_dollar]
-            ratings_with_text = tree.xpath("//span[@class='a-icon-alt']/text()")
-            #ratings = [rating.strip(' out of 5 stars') for rating in ratings_with_text]
-            ratings = [re.findall(r'\d+\.\d+', rating)[0] if re.findall(r'\d+\.\d+', rating) else '' for rating in ratings_with_text]
-            images = tree.xpath("//div[contains(@class, 'a-section') and contains(@class, 'aok-relative')]/img/@src")
-            second_URLs_wo_head = tree.xpath("//a[@class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal']/@href")
-            second_URLs = ["https://www.amazon.com/" + URL for URL in second_URLs_wo_head]
-
-            # Create a list of dictionaries to store the data
             products = []
-            for i in range(len(product_names)):
-                rating = ratings[i] if i < len(ratings) else ''  # Handle case where rating is not available
-                product = {
-                    'Name': product_names[i],
-                    'Price': prices[i],
-                    'Rating': rating,
-                    'Image': images[i],
-                    'Second_URL' : second_URLs[i]
-                }
+
+            result_elements = tree.xpath("//div[@data-component-type='s-search-result']")
+            for element in result_elements:
+                product = {}
+
+                # Extract ASIN
+                asin = element.get('data-asin')
+                if asin:
+                    product['ASIN'] = asin
+
+                # Extract product name
+                name_element = element.xpath(".//span[@class='a-size-base-plus a-color-base a-text-normal']")
+                if name_element:
+                    product['Name'] = name_element[0].text
+
+                # Extract product price
+                price_element = element.xpath(".//span[@class='a-offscreen']/text()")
+                if price_element:
+                    product['Price'] = price_element[0].strip('$')
+
+                # Extract product rating
+                rating_element = element.xpath(".//div[@class='a-row a-size-small']/span[@aria-label]")
+                if rating_element:
+                    rating_text = rating_element[0].get('aria-label')
+                    rating_match = re.search(r'\d+\.\d+', rating_text)
+                    if rating_match:
+                        product['Rating'] = rating_match.group()
+
+                # Extract product image
+                image_element = element.xpath(".//div[contains(@class, 'a-section') and contains(@class, 'aok-relative')]/img/@src")
+                if image_element:
+                    product['Image'] = image_element[0]
+
+                # Extract product URL
+                url_element = element.xpath(".//a[@class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal']/@href")
+                if url_element:
+                    product['URL'] = 'https://www.amazon.com' + url_element[0]
+
                 products.append(product)
 
             # Write the data to a CSV file
             with open('amazon_products.csv', 'w', newline='', encoding='utf-8') as file:
-                writer = csv.DictWriter(file, fieldnames=['Name', 'Price', 'Rating', 'Image', 'Second_URL'])
+                writer = csv.DictWriter(file, fieldnames=['ASIN', 'Name', 'Price', 'Rating', 'Image', 'URL'])
                 writer.writeheader()
                 writer.writerows(products)
 
@@ -62,5 +82,5 @@ def scrape_amazon_products(url):
     print(f"Failed to scrape data after {retries} retries")
 
 # Example usage
-url = 'https://www.amazon.com/s?k=chair&s=exact-aware-popularity-rank'
+url = 'https://www.amazon.com/s?k=vibrator&s=exact-aware-popularity-rank'
 scrape_amazon_products(url)
