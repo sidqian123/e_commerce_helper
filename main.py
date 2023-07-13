@@ -5,13 +5,13 @@ import re
 import time
 
 
-
 def scrape_amazon_products(url):
     retries = 3  # Number of retries
     delay = 2  # Delay in seconds between retries
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/91.0.4472.124 Safari/537.36',
         'Accept-Language': 'en-US,en;q=0.9',
     }
 
@@ -53,12 +53,14 @@ def scrape_amazon_products(url):
                         product['Rating'] = rating_match.group()
 
                 # Extract product image
-                image_element = element.xpath(".//div[contains(@class, 'a-section') and contains(@class, 'aok-relative')]/img/@src")
+                image_element = element.xpath(
+                    ".//div[contains(@class, 'a-section') and contains(@class, 'aok-relative')]/img/@src")
                 if image_element:
                     product['Image'] = image_element[0]
 
                 # Extract product URL
-                url_element = element.xpath(".//a[@class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal']/@href")
+                url_element = element.xpath(".//a[@class='a-link-normal s-underline-text s-underline-link-text "
+                                            "s-link-style a-text-normal']/@href")
                 if url_element:
                     product['URL'] = 'https://www.amazon.com' + url_element[0]
 
@@ -81,6 +83,13 @@ def scrape_amazon_products(url):
 
     print(f"Failed to scrape data after {retries} retries")
 
-# Example usage
-url = 'https://www.amazon.com/s?k=vibrator&s=exact-aware-popularity-rank'
-scrape_amazon_products(url)
+
+# Main
+def main():
+    key_word = input("search key words").replace(" ", "&")
+    url = 'https://www.amazon.com/s?k=' + key_word + '&s=exact-aware-popularity-rank'
+    scrape_amazon_products(url)
+
+
+if __name__ == '__main__':
+    main()
