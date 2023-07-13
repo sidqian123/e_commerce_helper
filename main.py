@@ -28,7 +28,8 @@ def scrape_amazon_products(url):
             #ratings = [rating.strip(' out of 5 stars') for rating in ratings_with_text]
             ratings = [re.findall(r'\d+\.\d+', rating)[0] if re.findall(r'\d+\.\d+', rating) else '' for rating in ratings_with_text]
             images = tree.xpath("//div[contains(@class, 'a-section') and contains(@class, 'aok-relative')]/img/@src")
-            next_page_url = tree.xpath("concat('https://www.amazon.com', //a[@class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal']/@href)")
+            second_URLs_wo_head = tree.xpath("//a[@class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal']/@href")
+            second_URLs = ["https://www.amazon.com/" + URL for URL in second_URLs_wo_head]
 
             # Create a list of dictionaries to store the data
             products = []
@@ -38,13 +39,14 @@ def scrape_amazon_products(url):
                     'Name': product_names[i],
                     'Price': prices[i],
                     'Rating': rating,
-                    'Image': images[i]
+                    'Image': images[i],
+                    'Second_URL' : second_URLs[i]
                 }
                 products.append(product)
 
             # Write the data to a CSV file
             with open('amazon_products.csv', 'w', newline='', encoding='utf-8') as file:
-                writer = csv.DictWriter(file, fieldnames=['Name', 'Price', 'Rating', 'Image'])
+                writer = csv.DictWriter(file, fieldnames=['Name', 'Price', 'Rating', 'Image', 'Second_URL'])
                 writer.writeheader()
                 writer.writerows(products)
 
