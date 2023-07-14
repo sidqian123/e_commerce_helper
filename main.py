@@ -1,6 +1,7 @@
 # All rights reserved by Changzhong Qian
 # Date: 2023-07-11
 # Version: 1.0
+# Disclaimer: This is a personal project and not for commercial use.
 # Description: This is a function to scrape product information from Amazon.com based on user input.
 # The function will scrape the first page of search results and save the data to a CSV file for further analysis.
 
@@ -10,6 +11,7 @@ import csv
 from lxml import html
 import re
 import time
+from datetime import datetime
 
 
 def scrape_amazon_products(url):
@@ -33,6 +35,7 @@ def scrape_amazon_products(url):
             products = []
             legitimacy = True
             factor_price = 0
+            search_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             result_elements = tree.xpath("//div[@data-component-type='s-search-result']")
             for element in result_elements:
                 product = {}
@@ -43,6 +46,9 @@ def scrape_amazon_products(url):
                     product['ASIN'] = asin
                 else:
                     legitimacy = False
+
+                # Add search date
+                product['Search Date'] = search_date
 
                 # Extract product name
                 name_element = element.xpath(".//span[@class='a-size-base-plus a-color-base a-text-normal']")
@@ -63,12 +69,6 @@ def scrape_amazon_products(url):
                 sale_element = element.xpath(".//span[@class='a-size-base a-color-secondary']/text()")
                 if sale_element:
                     sale_amount = sale_element[0].strip().split()[0].strip('+')
-                    # check if there is k inside the sale amount
-                    # if 'K' in sale_amount:
-                    #     sale_amount = sale_amount.strip('K')
-                    #     sale_amount = float(sale_amount) * 1000
-                    # else:
-                    #     sale_amount = float(sale_amount)
                     product['Sale'] = sale_amount
                 else:
                     legitimacy = False
@@ -82,6 +82,13 @@ def scrape_amazon_products(url):
                         product['Rating'] = rating_match.group()
                 else:
                     legitimacy = False
+
+                # Check Amazon Prime eligibility
+                prime_element = element.xpath(".//i[@aria-label='Amazon Prime']")
+                if prime_element:
+                    product['Amazon Prime'] = True
+                else:
+                    product['Amazon Prime'] = False
 
                 # Extract product image
                 image_element = element.xpath(
@@ -105,7 +112,8 @@ def scrape_amazon_products(url):
 
             # Write the data to a CSV file
             with open('amazon_products.csv', 'w', newline='', encoding='utf-8') as file:
-                writer = csv.DictWriter(file, fieldnames=['ASIN', 'Name', 'Price', 'Rating', 'Sale', 'Image', 'URL'])
+                writer = csv.DictWriter(file, fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Amazon Prime',
+                                                          'Sale', 'Image', 'URL'])
                 writer.writeheader()
                 writer.writerows(products)
             file.close()
