@@ -19,7 +19,7 @@ def scrape_amazon_products(url):
     delay = 2  # Delay in seconds between retries
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win32; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/91.0.4472.124 Safari/537.36',
         'Accept-Language': 'en-US,en;q=0.9',
     }
@@ -70,6 +70,8 @@ def scrape_amazon_products(url):
                 if sale_element:
                     sale_amount = sale_element[0].strip().split()[0].strip('+')
                     product['Sale'] = sale_amount
+                    if not sale_amount.strip('K').isdigit():
+                        product['Sale'] = None
                 else:
                     legitimacy = False
 
@@ -112,8 +114,9 @@ def scrape_amazon_products(url):
 
             # Write the data to a CSV file
             with open('amazon_products.csv', 'w', newline='', encoding='utf-8') as file:
-                writer = csv.DictWriter(file, fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Amazon Prime',
-                                                          'Sale', 'Image', 'URL'])
+                writer = csv.DictWriter(file,
+                                        fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Amazon Prime',
+                                                    'Sale', 'Image', 'URL'])
                 writer.writeheader()
                 writer.writerows(products)
             file.close()
