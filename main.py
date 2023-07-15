@@ -7,7 +7,7 @@
 # The function will scrape the first page of search results and save the data to a CSV file for further analysis.
 import json
 import sys
-
+from tqdm import tqdm
 import requests
 import csv
 from lxml import html
@@ -41,114 +41,118 @@ def scrape_amazon_products(url, pages, brand, retries=3, delay=2):
             legitimacy = True
             factor_price = 0
             search_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
             for i in range(pages):
-                url = url + '&page=' + str(i)
-                # Send a GET request to the URL with custom headers
-                response = requests.get(url, headers=headers)
-                response.raise_for_status()  # Raise an exception if the request was unsuccessful
+                url_with_page = url + '&page=' + str(i)
+                response = requests.get(url_with_page, headers=headers)
+                response.raise_for_status()
                 tree = html.fromstring(response.content)
 
-                # Extract product information using XPath
                 result_elements = tree.xpath("//div[@data-component-type='s-search-result']")
-                for element in result_elements:
-                    product = {}
+                total_items = len(result_elements)
 
-                    # Extract ASIN
-                    asin = element.get('data-asin')
-                    if asin:
-                        product['ASIN'] = asin
-                    else:
-                        legitimacy = False
+                with tqdm(total=total_items, desc=f"Scraping Page {i + 1}/{pages}") as pbar_items:
+                    for element in result_elements:
+                        product = {}
 
-                    # Add search date
-                    product['Search Date'] = search_date
-
-                    # Extract product name
-                    name_element = element.xpath(".//span[@class='a-size-base-plus a-color-base a-text-normal']")
-                    if name_element:
-                        product['Name'] = name_element[0].text
-                    else:
-                        legitimacy = False
-
-                    # Extract product price
-                    price_element = element.xpath(".//span[@class='a-offscreen']/text()")
-                    if price_element:
-                        product['Price'] = price_element[0].strip('$')
-                        factor_price = factor_price + float(product['Price'])
-                    else:
-                        legitimacy = False
-
-                    # Extract product sale
-                    sale_element = element.xpath(".//span[@class='a-size-base a-color-secondary']/text()")
-                    try:
-                        if sale_element:
-                            sale_amount = sale_element[0].strip().split()[0].strip('+')
-                            product['Sale'] = sale_amount
-                            if not sale_amount.strip('K').isdigit():
-                                product['Sale'] = None
+                        # Extract ASIN
+                        asin = element.get('data-asin')
+                        if asin:
+                            product['ASIN'] = asin
                         else:
                             legitimacy = False
-                    except IndexError:
-                        legitimacy = False
 
-                    # Extract product rating
-                    rating_element = element.xpath(".//div[@class='a-row a-size-small']/span[@aria-label]")
-                    if rating_element:
-                        rating_text = rating_element[0].get('aria-label')
-                        rating_match = re.search(r'\d+\.\d+', rating_text)
-                        if rating_match:
-                            product['Rating'] = rating_match.group()
-                    else:
-                        legitimacy = False
+                        # Add search date
+                        product['Search Date'] = search_date
 
-                    # Check Amazon Prime eligibility
-                    prime_element = element.xpath(".//i[@aria-label='Amazon Prime']")
-                    if prime_element:
-                        product['Amazon Prime'] = True
-                    else:
-                        product['Amazon Prime'] = False
+                        # Extract product name
+                        name_element = element.xpath(".//span[@class='a-size-base-plus a-color-base a-text-normal']")
+                        if name_element:
+                            product['Name'] = name_element[0].text
+                        else:
+                            legitimacy = False
 
-                    # Extract product image
-                    image_element = element.xpath(
-                        ".//div[contains(@class, 'a-section') and contains(@class, 'aok-relative')]/img/@src")
-                    if image_element:
-                        product['Image'] = image_element[0]
-                    else:
-                        legitimacy = False
+                        # Extract product price
+                        price_element = element.xpath(".//span[@class='a-offscreen']/text()")
+                        if price_element:
+                            product['Price'] = price_element[0].strip('$')
+                            factor_price = factor_price + float(product['Price'])
+                        else:
+                            legitimacy = False
 
-                    # Extract product URL
-                    url_element = element.xpath(".//a[@class='a-link-normal s-underline-text s-underline-link-text "
-                                                "s-link-style a-text-normal']/@href")
-                    if url_element:
-                        product['URL'] = 'https://www.amazon.com' + url_element[0]
-                    else:
-                        legitimacy = False
-                    if legitimacy:
-                        products.append(product)
-                    else:
-                        legitimacy = True
-                    if brand == 'y':
-                    # Proceed to product URL and extract brand information and review keywords
-                        response_detail_page = requests.get(product['URL'], headers=headers)
-                        response_detail_page.raise_for_status()  # Raise an exception if the request was unsuccessful
-                        tree_detail_page = html.fromstring(response_detail_page.content)
-                        product_brand = tree_detail_page.xpath("//tr[contains(@class, 'po-brand')]/td[2]/span["
-                                                               "@class='a-size-base po-break-word']")
-                        product['Brand'] = product_brand[0].text.strip() if product_brand else None
-                        time.sleep(1)
-                    # Extract key review ()
-                    # time.sleep(delay)
-                    # product_key_review = tree_detail_page.xpath('//span[contains(@data-cr-trigger-on-view, \'lighthouseTerms\')]/@data-cr-trigger-on-view')
-                    # if product_key_review:
-                    #     key_review = product_key_review[0].get('data-cr-trigger-on-view')
-                    #     if key_review:
-                    #         json_data = json.loads(key_review)
-                    #         product['Key Review'] = json_data["ajaxParamsMap"]["lighthouseTerms"].split('/')
-                    #     else:
-                    #         product['Key Review'] = None
-                    # else:
-                    #     product['Key Review'] = None
-                    loading_console(((len(products)) / (pages * 55)) * 100)
+                        # Extract product sale
+                        sale_element = element.xpath(".//span[@class='a-size-base a-color-secondary']/text()")
+                        try:
+                            if sale_element:
+                                sale_amount = sale_element[0].strip().split()[0].strip('+')
+                                product['Sale'] = sale_amount
+                                if not sale_amount.strip('K').isdigit():
+                                    product['Sale'] = None
+                            else:
+                                legitimacy = False
+                        except IndexError:
+                            legitimacy = False
+
+                        # Extract product rating
+                        rating_element = element.xpath(".//div[@class='a-row a-size-small']/span[@aria-label]")
+                        if rating_element:
+                            rating_text = rating_element[0].get('aria-label')
+                            rating_match = re.search(r'\d+\.\d+', rating_text)
+                            if rating_match:
+                                product['Rating'] = rating_match.group()
+                        else:
+                            legitimacy = False
+
+                        # Check Amazon Prime eligibility
+                        prime_element = element.xpath(".//i[@aria-label='Amazon Prime']")
+                        if prime_element:
+                            product['Amazon Prime'] = True
+                        else:
+                            product['Amazon Prime'] = False
+
+                        # Extract product image
+                        image_element = element.xpath(
+                            ".//div[contains(@class, 'a-section') and contains(@class, 'aok-relative')]/img/@src")
+                        if image_element:
+                            product['Image'] = image_element[0]
+                        else:
+                            legitimacy = False
+
+                        # Extract product URL
+                        url_element = element.xpath(".//a[@class='a-link-normal s-underline-text s-underline-link-text "
+                                                    "s-link-style a-text-normal']/@href")
+                        if url_element:
+                            product['URL'] = 'https://www.amazon.com' + url_element[0]
+                        else:
+                            legitimacy = False
+                        if legitimacy:
+                            products.append(product)
+                        else:
+                            legitimacy = True
+                        if brand == 'y':
+                        # Proceed to product URL and extract brand information and review keywords
+                            response_detail_page = requests.get(product['URL'], headers=headers)
+                            response_detail_page.raise_for_status()  # Raise an exception if the request was unsuccessful
+                            tree_detail_page = html.fromstring(response_detail_page.content)
+                            product_brand = tree_detail_page.xpath("//tr[contains(@class, 'po-brand')]/td[2]/span["
+                                                                   "@class='a-size-base po-break-word']")
+                            product['Brand'] = product_brand[0].text.strip() if product_brand else None
+                            time.sleep(1)
+
+                        # Extract key review ()
+                        # time.sleep(delay)
+                        # product_key_review = tree_detail_page.xpath('//span[contains(@data-cr-trigger-on-view, \'lighthouseTerms\')]/@data-cr-trigger-on-view')
+                        # if product_key_review:
+                        #     key_review = product_key_review[0].get('data-cr-trigger-on-view')
+                        #     if key_review:
+                        #         json_data = json.loads(key_review)
+                        #         product['Key Review'] = json_data["ajaxParamsMap"]["lighthouseTerms"].split('/')
+                        #     else:
+                        #         product['Key Review'] = None
+                        # else:
+                        #     product['Key Review'] = None
+
+                        pbar_items.update(1)
 
 
 
