@@ -25,7 +25,7 @@ def loading_console(percentage):
     sys.stdout.write(output)
     sys.stdout.flush()
 
-def scrape_amazon_products(url, pages, brand, retries=3, delay=2):
+def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
     retries = 3  # Number of retries
     delay = 2  # Delay in seconds between retries
 
@@ -40,7 +40,7 @@ def scrape_amazon_products(url, pages, brand, retries=3, delay=2):
             products = []
             legitimacy = True
             factor_price = 0
-            search_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            search_date = datetime.now().strftime('%Y-%m-%d')
 
             for i in range(pages):
                 url_with_page = url + '&page=' + str(i)
@@ -157,7 +157,7 @@ def scrape_amazon_products(url, pages, brand, retries=3, delay=2):
 
 
             # Write the data to a CSV file
-            with open('amazon_products.csv', 'w', newline='', encoding='utf-8') as file:
+            with open('amz_' + key_word + '_' + search_date + '_.csv', 'w', newline='', encoding='utf-8') as file:
                 writer = csv.DictWriter(file,
                                         fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Amazon Prime',
                                                     'Sale', 'Brand', 'Image', 'URL'])
@@ -177,11 +177,11 @@ def scrape_amazon_products(url, pages, brand, retries=3, delay=2):
 
 # Main
 def main():
-    key_word = input("search key words: ").replace(" ", "&")
+    key_word = input("search key words: ").strip().replace(" ", "+")
     url = 'https://www.amazon.com/s?k=' + key_word + '&s=exact-aware-popularity-rank'
     num_pages = int(input("number of page you expect to search: "))
     brand = input("Record for brand (y): ")
-    scrape_amazon_products(url, num_pages, brand)
+    scrape_amazon_products(url, num_pages, brand, key_word)
 
 
 if __name__ == '__main__':
