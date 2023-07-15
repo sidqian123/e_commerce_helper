@@ -157,7 +157,7 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
 
 
             # Write the data to a CSV file
-            with open('amz_' + key_word + '_' + search_date + '_.csv', 'w', newline='', encoding='utf-8') as file:
+            with open('product_data/amz_' + key_word + '_' + search_date + '_.csv', 'w', newline='', encoding='utf-8') as file:
                 writer = csv.DictWriter(file,
                                         fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Amazon Prime',
                                                     'Sale', 'Brand', 'Image', 'URL'])
