@@ -164,7 +164,11 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
                 writer.writeheader()
                 writer.writerows(products)
             file.close()
-            return  # Exit the function after successful scraping
+            with open('product_data/amz_' + key_word + '_' + search_date + '_.json', 'w', encoding='utf-8') as file:
+                json.dump(products, file, indent=4)
+            file.close()
+
+            return
 
         except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
             print(f"Error: {e}")
