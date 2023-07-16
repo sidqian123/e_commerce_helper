@@ -5,32 +5,27 @@
 # Not responsible for how it is used and assume no liability for any detrimental usage of the source code
 # Description: This is a function to scrape product information from Amazon.com based on user input.
 # The function will scrape the first page of search results and save the data to a CSV file for further analysis.
-import json
-import sys
-from tqdm import tqdm
-import requests
+
 import csv
-from lxml import html
 import re
 import time
 from datetime import datetime
 
+import requests
+from lxml import html
+from tqdm import tqdm
 
-def loading_console(percentage):
-    num_bars = int(percentage // 5)
-    bar = "|-" * num_bars
 
-    # Output the loading bar and percentage
-    output = f"{bar} {percentage:.0f}%\n"
-    sys.stdout.write(output)
-    sys.stdout.flush()
+def scrape_amazon_products(pages, brand, key_word, retries=3, delay=2):
+    key_word = key_word.strip().replace(" ", "+")
+    url = 'https://www.amazon.com/s?k=' + key_word + '&s=exact-aware-popularity-rank'
+    pages = int(pages)
 
-def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
-    retries = 3  # Number of retries
-    delay = 2  # Delay in seconds between retries
+    retries = 3  # Default Number of retries
+    delay = 2  # Default Delay in seconds between retries
 
     headers = {
-        'User-Agent': 'Mozilla/7.0 (Windows NT 16.0; Win99; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+        'User-Agent': 'Mozilla/7.0 (Windows NT 16.0; Win34; x34) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/91.0.4472.124 Safari/537.36',
         'Accept-Language': 'en-US,en;q=0.9',
     }
@@ -130,41 +125,35 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
                         else:
                             legitimacy = True
                         if brand == 'y':
-                        # Proceed to product URL and extract brand information and review keywords
+                            # Proceed to product URL and extract brand information and review keywords
                             response_detail_page = requests.get(product['URL'], headers=headers)
-                            response_detail_page.raise_for_status()  # Raise an exception if the request was unsuccessful
+                            response_detail_page.raise_for_status()  # Raise an exception if the request was
+                            # unsuccessful
                             tree_detail_page = html.fromstring(response_detail_page.content)
                             product_brand = tree_detail_page.xpath("//tr[contains(@class, 'po-brand')]/td[2]/span["
                                                                    "@class='a-size-base po-break-word']")
                             product['Brand'] = product_brand[0].text.strip() if product_brand else None
                             time.sleep(1)
 
-                        # Extract key review ()
-                        # time.sleep(delay)
-                        # product_key_review = tree_detail_page.xpath('//span[contains(@data-cr-trigger-on-view, \'lighthouseTerms\')]/@data-cr-trigger-on-view')
-                        # if product_key_review:
-                        #     key_review = product_key_review[0].get('data-cr-trigger-on-view')
-                        #     if key_review:
-                        #         json_data = json.loads(key_review)
-                        #         product['Key Review'] = json_data["ajaxParamsMap"]["lighthouseTerms"].split('/')
-                        #     else:
-                        #         product['Key Review'] = None
-                        # else:
-                        #     product['Key Review'] = None
+                        # Extract key review () time.sleep(delay) product_key_review = tree_detail_page.xpath(
+                        # '//span[contains(@data-cr-trigger-on-view, \'lighthouseTerms\')]/@data-cr-trigger-on-view')
+                        # if product_key_review: key_review = product_key_review[0].get('data-cr-trigger-on-view') if
+                        # key_review: json_data = json.loads(key_review) product['Key Review'] = json_data[
+                        # "ajaxParamsMap"]["lighthouseTerms"].split('/') else: product['Key Review'] = None else:
+                        # product['Key Review'] = None
 
                         pbar_items.update(1)
 
-
-
             # Write the data to a CSV file
-            with open('product_data/amz_' + key_word + '_' + search_date + '_.csv', 'w', newline='', encoding='utf-8') as file:
+            with open('../product_data/amz_' + key_word + '_' + search_date + '_.csv', 'w', newline='',
+                      encoding='utf-8') as file:
                 writer = csv.DictWriter(file,
                                         fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Amazon Prime',
                                                     'Sale', 'Brand', 'Image', 'URL'])
                 writer.writeheader()
                 writer.writerows(products)
             file.close()
-            return  # Exit the function after successful scraping
+            return products  # Return the scraped data for API
 
         except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
             print(f"Error: {e}")
@@ -177,11 +166,10 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
 
 # Main
 def main():
-    key_word = input("search key words: ").strip().replace(" ", "+")
-    url = 'https://www.amazon.com/s?k=' + key_word + '&s=exact-aware-popularity-rank'
-    num_pages = int(input("number of page you expect to search: "))
+    key_word = input("search key words: ")
+    num_pages = input("number of page you expect to search: ")
     brand = input("Record for brand (y): ")
-    scrape_amazon_products(url, num_pages, brand, key_word)
+    scrape_amazon_products(num_pages, brand, key_word)
 
 
 if __name__ == '__main__':
