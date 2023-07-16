@@ -35,8 +35,9 @@ Ensure that these dependencies are installed before running the project.
 4. Follow the instructions provided by the script to input search keywords, the number of pages to scrape, and whether to record brand information.
    (input y to record brand name however it will take significant longer to scrape)
 5. The script will initiate web scraping, retrieving product data from Amazon based on the provided search criteria.
-6. After scraping, the collected data will be saved to a CSV file named `amazon_products.csv` in the same directory.
-7. The saved data can then be further processed and analyzed using AI algorithms and visualization techniques.
+6. After scraping, the collected data will be saved to a CSV file named `amz_keyword_date.csv` in the data directory.
+7. You can use the plot function from plot.py to visualize the data easily
+8. The saved data can then be further processed and analyzed using AI algorithms and visualization techniques.
 
 ## Contact
 For any inquiries or issues regarding the e_commerce_pro project, please contact Changzhong Qian.
