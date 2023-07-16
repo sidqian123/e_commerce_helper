@@ -4,6 +4,9 @@
 ## Description
 The e_commerce_pro project aims to develop an automated system for trend analysis in e-commerce. The system utilizes web scraping techniques, specifically XPath and Python, to obtain data on top-selling products from influential marketplaces like Amazon and eBay. The collected data is then processed using AI algorithms to transform it into visualized insights, which can aid business owners in making informed product selection decisions and enhancing their overall sales performance.
 
+##
+This Branch uses docker to run amz_main scrape function and use flask to response for API request, still in progress for developing 
+
 ## Disclaimer
 This project is a personal endeavor and is not intended for commercial use. The provided source code and system are shared for educational and informational purposes only. The project developers are not responsible for how the code is used and assume no liability for any detrimental usage or consequences arising from it.
 
