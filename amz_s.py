@@ -100,6 +100,9 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
                             rating_match = re.search(r'\d+\.\d+', rating_text)
                             if rating_match:
                                 product['Rating'] = rating_match.group()
+                            rating_text = rating_element[1].get('aria-label')
+                            if rating_match:
+                                product['Review Amount'] = rating_text
                         else:
                             legitimacy = False
 
@@ -159,11 +162,14 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
             # Write the data to a CSV file
             with open('product_data/amz_' + key_word + '_' + search_date + '_.csv', 'w', newline='', encoding='utf-8') as file:
                 writer = csv.DictWriter(file,
-                                        fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Amazon Prime',
+                                        fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Review Amount',
+                                                    'Amazon Prime',
                                                     'Sale', 'Brand', 'Image', 'URL'])
                 writer.writeheader()
                 writer.writerows(products)
             file.close()
+
+            # Write the data to a JSON file
             with open('product_data/amz_' + key_word + '_' + search_date + '_.json', 'w', encoding='utf-8') as file:
                 json.dump(products, file, indent=4)
             file.close()
