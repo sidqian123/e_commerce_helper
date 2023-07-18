@@ -46,7 +46,7 @@ Ensure that these dependencies are installed before running the project.
          - able to load in earlier date JSON/CSV file for price trend.
 8. Laplace sorting algo
    - `sort.py` uses Laplace's rule of succession rate to sort the product based on rating and review amount (_in developing_).
-10. The saved data can then be further processed and analyzed using AI algorithms and visualization techniques.
+10. The saved data can then be further processed and analyzed using AI algorithms and visualization techniques (_in developing_).
 
 ## Contact
 For any inquiries or issues regarding the e_commerce_pro project, please contact Changzhong Qian.
