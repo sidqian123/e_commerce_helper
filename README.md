@@ -21,6 +21,8 @@ The following dependencies are required to run the project:
 - Python (version 3.0 or higher)
 - requests
 - lxml
+- json
+- tqdm
 - csv
 - re
 - time
@@ -31,14 +33,22 @@ Ensure that these dependencies are installed before running the project.
 ## Usage
 1. Clone the project repository to your local machine.
 2. Install the required dependencies listed above.
-3. Execute the provided Python script (`scrape_amazon_products.py`) using a Python interpreter or IDE.
-4. Follow the instructions provided by the script to input search keywords, the number of pages to scrape, and whether to record brand information.
-   (input y to record brand name however it will take significant longer to scrape)
+3. Execute the provided Python script (`amz_s.py`) using a Python interpreter or IDE.
+4. Follow the instructions provided by the script to input search keywords, the number of pages to scrape, and whether to record brand information. (input y to record brand name, however, it will take significantly longer time to scrape) 
 5. The script will initiate web scraping, retrieving product data from Amazon based on the provided search criteria.
-6. After scraping, the collected data will be saved to a CSV file named `amz_keyword_date.csv` in the data directory.
-7. You can use the plot function from plot.py to visualize the data easily
-8. The saved data can then be further processed and analyzed using AI algorithms and visualization techniques.
+6. the collected data will be saved to a CSV file named `amz_keyword_date.csv` and a JSON file named `amz_keyword_date.json` in the data directory after scraping.
+7. Visualize data
+   - You can use the plot function from plot.py to visualize the data easily
+   - You can also open the html file in the `../visual/web.html` folder for easier visualization (_in developing_).
+      - web visualization tool update:
+         - display all the products based on the JSON file.
+         - image for each product will be loaded.
+         - able to load in earlier date JSON/CSV file for price trend.
+8. Laplace sorting algo
+   - `sort.py` uses Laplace's rule of succession rate to sort the product based on rating and review amount (_in developing_).
+10. The saved data can then be further processed and analyzed using AI algorithms and visualization techniques.
 
 ## Contact
 For any inquiries or issues regarding the e_commerce_pro project, please contact Changzhong Qian.
+© 2023 Changzhong Qian
 """
