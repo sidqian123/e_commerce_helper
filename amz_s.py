@@ -1,10 +1,10 @@
-# All rights reserved by Changzhong Qian
 # Date: 2023-07-11
 # Version: 1.0
 # Disclaimer: This is a personal project and not for commercial use.
 # Not responsible for how it is used and assume no liability for any detrimental usage of the source code
 # Description: This is a function to scrape product information from Amazon.com based on user input.
 # The function will scrape the first page of search results and save the data to a CSV file for further analysis.
+# © 2023 Changzhong Qian All Rights Reserved
 import json
 import sys
 from tqdm import tqdm

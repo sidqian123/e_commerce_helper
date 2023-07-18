@@ -46,7 +46,7 @@ function displayProductData(data) {
 }
 
 function fetchHistoricalData(asin, keyword) {
-  fetch('../product_data/amz_' + keyword + '_2023-07-15_.json')
+  fetch('../product_data/amz_' + keyword + '_2023-07-16_.json')
       .then(response => {
         if (!response.ok) throw new Error('HTTP error ' + response.status);
         return response.json();
