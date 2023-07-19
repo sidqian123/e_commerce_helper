@@ -7,6 +7,9 @@ The e_commerce_pro project aims to develop an automated system for trend analysi
 ## Disclaimer
 This project is a personal endeavor and is not intended for commercial use. The provided source code and system are shared for educational and informational purposes only. The project developers are not responsible for how the code is used and assume no liability for any detrimental usage or consequences arising from it.
 
+## Request Inquiries
+If you discover any bugs or require more features, please contact me (sidqian@yahoo.com). This repo is being closely monitored and updated.
+
 ## Features
 - Automated web scraping of top-selling products from Amazon and eBay.
 - Data collection includes product information such as name, price, rating, availability, and more.
