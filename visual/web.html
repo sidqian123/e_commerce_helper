@@ -1,29 +1,21 @@
 <!DOCTYPE html>
-<html>
 <head>
   <title>Amazon Product Table</title>
 </head>
 <body>
+
+<input id="productInput" type="text" placeholder="Enter product name...">
+<button id="productButton" type="button">Display Product</button>
+
 <table id="productTable" border="1">
-  <thead>
-  <tr>
-    <th>ASIN</th>
-    <th>Search Date</th>
-    <th>Name</th>
-    <th>Price</th>
-    <th>Sale</th>
-    <th>Rating</th>
-    <th>Amazon Prime</th>
-    <th>Image</th>
-    <th>URL</th>
-  </tr>
-  </thead>
-  <tbody></tbody>
+  <!-- Table headers and body here -->
 </table>
 
 <canvas id="priceChart"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="json_reader.js"></script>
+<script src="productScript.js"></script>
+
 </body>
 </html>
