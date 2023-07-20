@@ -10,6 +10,9 @@ This project is a personal endeavor and is not intended for commercial use. The 
 ## Request Inquiries
 If you discover any bugs or require more features, please contact me (sidqian@yahoo.com). This repo is being closely monitored and updated.
 
+## Progress Update (2023-07-20)
+Updated the web page for data visualization, now image and price trend graph is done and ready to use. NOTE: before running the webpage make sure in the project directory run `python3 server/server.py` or if using other versions of python `python server/server.py`. This runs a Python server locally for the webpage update from your local database.
+
 ## Features
 - Automated web scraping of top-selling products from Amazon and eBay.
 - Data collection includes product information such as name, price, rating, availability, and more.
@@ -42,11 +45,13 @@ Ensure that these dependencies are installed before running the project.
 6. the collected data will be saved to a CSV file named `amz_keyword_date.csv` and a JSON file named `amz_keyword_date.json` in the data directory after scraping.
 7. Visualize data
    - You can use the plot function from plot.py to visualize the data easily
-   - You can also open the html file in the `../visual/web.html` folder for easier visualization (_in developing_).
+   - You can also open the html file in the `../visual/web.html` folder for easier visualization.
+   - before using the web page, run `python3 server/server.py` or, depending on your python version, run `python server/server.py` in the project directory to start the local python server to help load the webpage.
       - web visualization tool update:
          - display all the products based on the JSON file.
          - image for each product will be loaded.
          - able to load in earlier date JSON/CSV file for price trend.
+         - able to perform different product searches.
 8. Laplace sorting algo
    - `sort.py` uses Laplace's rule of succession rate to sort the product based on rating and review amount (_in developing_).
 10. The saved data can then be further processed and analyzed using AI algorithms and visualization techniques (_in developing_).
