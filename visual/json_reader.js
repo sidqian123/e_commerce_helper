@@ -1,17 +1,58 @@
 let productData;
 let chart;
+let currentProduct;
+let currentChartRow;
 
-fetch('../product_data/amz_chair_2023-07-15_.json')
-    .then(response => response.json())
-    .then(data => {
-      productData = data;
-      displayProductData(productData);
-    })
-    .catch(error => console.error('Error:', error));
+document.getElementById('productButton').addEventListener('click', () => {
+  const product = document.getElementById('productInput').value.trim();
+  if (product) {
+    currentProduct = product.replace(' ', '+');
+    fetchLatestFile(currentProduct);
+  }
+});
+
+function fetchLatestFile(product) {
+  // Clear the table before fetching new data
+  const table = document.getElementById('productTable');
+  while (table.rows.length > 0) {
+    table.deleteRow(0);
+  }
+
+  // Clear the chart if it exists
+  if (chart) {
+    chart.destroy();
+    chart = null;
+  }
+
+  // Remove chart row if exists
+  if (currentChartRow) {
+    currentChartRow.remove();
+    currentChartRow = null;
+  }
+
+  fetch(`http://localhost:8000/${product}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        productData = data;
+        displayProductData(productData);
+      })
+      .catch(error => console.error('Error:', error));
+}
 
 function displayProductData(data) {
   const table = document.getElementById('productTable');
-
+  const headerRow = table.insertRow(-1);
+  ['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Review Amount', 'Amazon Prime', 'Sale', 'Brand', 'Image', 'URL']
+      .forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
   data.forEach((item, index) => {
     const row = table.insertRow(-1);
     row.id = 'row-' + index;
@@ -41,41 +82,63 @@ function displayProductData(data) {
     const row = event.target.closest('tr');
     if (!row || !row.id || !row.id.startsWith('row-')) return;
     const index = Number(row.id.split('-')[1]);
-    fetchHistoricalData(data[index].ASIN, 'chair');
+
+    // Remove existing chart row if present
+    if (currentChartRow) {
+      currentChartRow.remove();
+      currentChartRow = null;
+    }
+
+    // Create a canvas right under the clicked row
+    currentChartRow = table.insertRow(row.rowIndex + 1);
+    currentChartRow.id = 'chart-row-' + index;
+    const chartCell = currentChartRow.insertCell(0);
+    chartCell.colSpan = 10;
+    const canvas = document.createElement('canvas');
+    canvas.id = 'chart-' + index;
+    chartCell.appendChild(canvas);
+
+    fetchHistoricalData(data[index].ASIN, canvas.id);
   });
-}
 
-function fetchHistoricalData(asin, keyword) {
-  fetch('../product_data/amz_' + keyword + '_2023-07-16_.json')
-      .then(response => {
-        if (!response.ok) throw new Error('HTTP error ' + response.status);
-        return response.json();
-      })
-      .then(data => {
-        const dates = [];
-        const prices = [];
+  function fetchHistoricalData(asin, canvasId) {
+    console.log('Fetching historical data for:', asin);  // Debug: check the ASIN we're requesting
+    fetch(`http://localhost:8000/${currentProduct}/history/${asin}`)  // Modified fetch URL as per server code
+        .then(response => {
+          if (!response.ok) throw new Error('HTTP error ' + response.status);
+          return response.json();
+        })
+        .then(data => {
+          console.log('Received history data:', data);  // Debug: check the history data we received
+          if (!data || data.length === 0) {
+            console.log('Error: No history data received for this ASIN.');
+          } else {
+            const dates = [];
+            const prices = [];
 
-        data.forEach(item => {
-          if (item.ASIN === asin) {
-            dates.push(item['Search Date']);
-            prices.push(item.Price);
+            data.forEach(item => {
+              dates.push(item['Search Date']);
+              prices.push(item.Price);
+            });
+
+            console.log('Dates:', dates);  // Debug: check the dates array
+            console.log('Prices:', prices);  // Debug: check the prices array
+
+            createGraph(dates, prices, asin, canvasId);  // Pass canvasId here
           }
-        });
-
-        createGraph(dates, prices, asin);
-      })
-      .catch(error => {
-        console.log('Fetch failed:', error);
-        const dates = [new Date().toISOString().slice(0, 10)];
-        const prices = [item.Price];
-        createGraph(dates, prices, asin);
-      });
+        })
+        .catch(error => console.log('Fetch failed:', error));
+  }
 }
 
-function createGraph(dates, prices, asin) {
-  const ctx = document.getElementById('priceChart').getContext('2d');
 
+function createGraph(dates, prices, asin, canvasId) {  // Include canvasId in arguments
   if (chart) chart.destroy();
+
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  canvas.style.width = '800px'; // set width
+  canvas.style.height = '100px'; // set height
 
   chart = new Chart(ctx, {
     type: 'line',
