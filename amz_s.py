@@ -25,6 +25,7 @@ def loading_console(percentage):
     sys.stdout.write(output)
     sys.stdout.flush()
 
+
 def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
     retries = 3  # Number of retries
     delay = 2  # Delay in seconds between retries
@@ -75,7 +76,7 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
                         # Extract product price
                         price_element = element.xpath(".//span[@class='a-offscreen']/text()")
                         if price_element:
-                            product['Price'] = price_element[0].strip('$')
+                            product['Price'] = price_element[0].strip('$').strip(',')
                             factor_price = factor_price + float(product['Price'])
                         else:
                             legitimacy = False
@@ -133,7 +134,7 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
                         else:
                             legitimacy = True
                         if brand == 'y':
-                        # Proceed to product URL and extract brand information and review keywords
+                            # Proceed to product URL and extract brand information and review keywords
                             response_detail_page = requests.get(product['URL'], headers=headers)
                             response_detail_page.raise_for_status()  # Raise an exception if the request was unsuccessful
                             tree_detail_page = html.fromstring(response_detail_page.content)
@@ -141,38 +142,25 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
                                                                    "@class='a-size-base po-break-word']")
                             product['Brand'] = product_brand[0].text.strip() if product_brand else None
                             time.sleep(1)
-
-                        # Extract key review ()
-                        # time.sleep(delay)
-                        # product_key_review = tree_detail_page.xpath('//span[contains(@data-cr-trigger-on-view, \'lighthouseTerms\')]/@data-cr-trigger-on-view')
-                        # if product_key_review:
-                        #     key_review = product_key_review[0].get('data-cr-trigger-on-view')
-                        #     if key_review:
-                        #         json_data = json.loads(key_review)
-                        #         product['Key Review'] = json_data["ajaxParamsMap"]["lighthouseTerms"].split('/')
-                        #     else:
-                        #         product['Key Review'] = None
-                        # else:
-                        #     product['Key Review'] = None
-
                         pbar_items.update(1)
 
-
-
             # Write the data to a CSV file
-            with open('product_data/amz_' + key_word + '_' + search_date + '_.csv', 'w', newline='', encoding='utf-8') as file:
-                writer = csv.DictWriter(file,
-                                        fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Review Amount',
-                                                    'Amazon Prime',
-                                                    'Sale', 'Brand', 'Image', 'URL'])
-                writer.writeheader()
-                writer.writerows(products)
-            file.close()
+            # with open('product_data/amz_' + key_word + '_' + search_date + '_.csv', 'w', newline='',
+            #           encoding='utf-8') as file:
+            #     writer = csv.DictWriter(file,
+            #                             fieldnames=['Search Date', 'ASIN', 'Name', 'Price', 'Rating', 'Review Amount',
+            #                                         'Amazon Prime',
+            #                                         'Sale', 'Brand', 'Image', 'URL'])
+            #     writer.writeheader()
+            #     writer.writerows(products)
+            # file.close()
 
-            # Write the data to a JSON file
-            with open('product_data/amz_' + key_word + '_' + search_date + '_.json', 'w', encoding='utf-8') as file:
-                json.dump(products, file, indent=4)
-            file.close()
+            # # Write the data to a JSON file
+            # with open('product_data/amz_' + key_word + '_' + search_date + '_.json', 'w', encoding='utf-8') as file:
+            #     json.dump(products, file, indent=4)
+            # file.close()
+            #
+            write_to_json_file('product_data/amz_' + key_word + '.json', products)
 
             return
 
@@ -183,6 +171,48 @@ def scrape_amazon_products(url, pages, brand, key_word, retries=3, delay=2):
             continue
 
     print(f"Failed to scrape data after {retries} retries")
+
+
+def write_to_json_file(filename, products):
+    # Initialize data as an empty dictionary
+    data = {}
+
+    try:
+        # Try to open the file and load the existing data
+        with open(filename, 'r') as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        # If the file does not exist, catch the FileNotFoundError and create a new file
+        with open(filename, 'w') as file:
+            json.dump(data, file)
+
+    # Get the ASIN of the new product
+    for product in products:
+        new_asin = product['ASIN']
+
+        # Check if the product exists in the existing data
+        if new_asin in data:
+            if product['Search Date'] not in data[new_asin]['Search Date']:
+                # If the product exists, append the new data to the existing data
+                for key, value in product.items():
+                    if key in ['Search Date', 'Price', 'Sale', 'Rating', 'Review Amount']:
+                        # For these fields, the value should be a list, append the new value to the existing list
+                        if isinstance(data[new_asin].get(key), list):
+                            data[new_asin][key].append(value)
+                        else:
+                            # If these fields are not lists, convert them into lists
+                            data[new_asin][key] = [data[new_asin].get(key), value]
+                    else:
+                        # For other fields, overwrite the existing value
+                        data[new_asin][key] = value
+        else:
+            # If the product does not exist, add the new product to the existing data
+            product_data_as_list = {key: [value] if key in ['Search Date', 'Price', 'Sale', 'Rating', 'Review Amount'] else value for key, value in product.items()}
+            data[new_asin] = product_data_as_list
+
+        # Write the updated data back to the file
+    with open(filename, 'w') as file:
+        json.dump(data, file, indent=4)
 
 
 # Main
