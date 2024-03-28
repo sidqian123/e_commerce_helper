@@ -11,6 +11,7 @@ This project is a personal endeavor and is not intended for commercial use. The 
 If you discover any bugs or require more features, please contact me (sidqian@yahoo.com). This repo is being closely monitored and updated.
 
 ## Progress Update (2023-07-20)
+IMPORTANT: I have not been able to update the repo recently, but the next step would be to have the whole program packaged into one desktop app. More updates will be happening in 2 months.
 Updated the web page for data visualization, now image and price trend graph is done and ready to use. NOTE: before running the webpage make sure in the project directory run `python3 server/server.py` or if using other versions of python `python server/server.py`. This runs a Python server locally for the webpage update from your local database.
 
 ## Features
